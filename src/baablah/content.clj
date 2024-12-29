@@ -13,10 +13,6 @@
 ;; In memory database history for playing around
 (def db-history (atom @db))
 
-;; TBD once we get the flow going
-(defn valid-user? [])
-(defn valid-source-point? [])
-
 (defn dereference
   [{:keys [user digest]}]
   (some->> (get-in @db-history [:content user])
