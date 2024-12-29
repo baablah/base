@@ -12,8 +12,7 @@
     [reitit.ring.spec :as spec]
     [reitit.swagger-ui :as swagger-ui]
     [ring.adapter.jetty :as jetty]
-    [spec-tools.spell :as spell])
-  (:import (org.eclipse.jetty.server Server)))
+    [spec-tools.spell :as spell]))
 
 (s/def ::user-id int?)
 (s/def ::greeting string?)
@@ -22,11 +21,11 @@
 (defn user-content
   [user-id]
   {:status 200
-   :body (condp = user-id
-           1 content/greeting-be
-           2 content/greeting-boro
-           3 content/greeting-slur
-           content/greeting)})
+   :body (:html (condp = user-id
+                  1 content/greeting-be
+                  2 content/greeting-boro
+                  3 content/greeting-slur
+                  content/greeting))})
 
 (def app
   (ring/ring-handler
@@ -38,7 +37,7 @@
                                             (user-content user-id))}}]]
       {;;:reitit.middleware/transform dev/print-request-diffs ;; pretty diffs
        :validate spec/validate                              ;; enable spec validation for route data
-       :reitit.spec/wrap spell/closed ;; strict top-level validation
+       :reitit.spec/wrap spell/closed                       ;; strict top-level validation
        :exception pretty/exception
        :data {:coercion reitit.coercion.spec/coercion
               :middleware [;; query-params & form-params
@@ -65,11 +64,9 @@
                   :operationsSorter "alpha"}})
       (ring/create-default-handler))))
 
-(def jetty (atom nil))
-
 (defn start-jetty []
-  (reset! jetty (jetty/run-jetty app {:port 3000
-                                      :join? false})))
+  (let [port 3000]
+    (println (str "Starting server on port " port))
+    (jetty/run-jetty app {:port port
+                          :join? false})))
 
-(defn stop-jetty []
-  (when @jetty (.stop ^Server @jetty)))
